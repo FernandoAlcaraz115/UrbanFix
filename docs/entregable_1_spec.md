@@ -58,3 +58,4 @@ El **Entregable 1** consiste en el centro de comando para supervisores y directo
 - **Trigger `update_report_geom`:** Actualiza automáticamente el punto espacial al recibir `latitude` y `longitude`.
 - **Índice GiST:** Para búsquedas espaciales en milisegundos (`idx_reports_location`).
 - **Función RPC `find_nearby_reports`:** Algoritmo para detectar incidencias dentro de un radio de $X$ metros (evita reportes duplicados en la app móvil).
+

@@ -1,7 +1,8 @@
 # 🏙️ UrbanFix — Reporte Ciudadano Inteligente de Infraestructura Urbana
 
 <p align="center">
-  <strong>Plataforma integral GovTech para reporte, geolocalización, despacho y seguimiento en tiempo real de fallas en infraestructura urbana.</strong>
+  <strong>Plataforma integral GovTech para reporte, geolocalización, despacho y seguimiento en tiempo real de fallas en infraestructura urbana.</strong><br>
+  <em>Diseñada e implementada para el H. Ayuntamiento de Morelia, Michoacán, México.</em>
 </p>
 
 ---
@@ -67,17 +68,19 @@ UrbanFix/
 
 ## 🚀 Puesta en Marcha
 
-### 1. Panel Web Administrativo (`admin`)
+### Opción Rápida (Windows):
+Simplemente haz doble clic en el archivo **`iniciar.bat`** en la raíz de la carpeta `UrbanFix/`. El script verificará Node.js, instalará dependencias si es necesario y abrirá automáticamente el panel web en tu navegador.
 
+### Opción Manual desde Terminal:
 ```bash
-# Entrar al directorio
+# Entrar al directorio del panel admin
 cd admin
 
 # Instalar dependencias
 npm install
 
-# Iniciar servidor de desarrollo
-npm run dev
+# Iniciar servidor de desarrollo y abrir navegador
+npm run dev -- --open
 ```
 La aplicación estará disponible en `http://localhost:5173/` (o el puerto indicado por Vite).
 
@@ -115,3 +118,4 @@ Por defecto, la aplicación incluye un adaptador de datos simulados reactivo par
 
 ## 📄 Licencia
 Este proyecto está bajo la Licencia MIT.
+

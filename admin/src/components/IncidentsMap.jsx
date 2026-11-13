@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
+import React, { useState, useEffect } from 'react';
+import { MapContainer, TileLayer, Marker, Popup, useMap, ZoomControl } from 'react-leaflet';
 import L from 'leaflet';
 import { 
   Maximize2, 
@@ -10,6 +10,7 @@ import {
   ThumbsUp,
   Layers,
   Wrench,
+  Navigation,
   ExternalLink
 } from 'lucide-react';
 
@@ -60,6 +61,29 @@ function createCustomPin(categoryColor, isCritical, categorySlug) {
   });
 }
 
+// Controlador interno de Leaflet para garantizar renderizado de tiles y recentrado
+function MapController({ centerTrigger, defaultCenter }) {
+  const map = useMap();
+
+  useEffect(() => {
+    // Forzar recalculo de dimensiones para evitar tiles grises en carga inicial
+    const t1 = setTimeout(() => map.invalidateSize(), 150);
+    const t2 = setTimeout(() => map.invalidateSize(), 500);
+    return () => {
+      clearTimeout(t1);
+      clearTimeout(t2);
+    };
+  }, [map]);
+
+  useEffect(() => {
+    if (centerTrigger > 0) {
+      map.flyTo(defaultCenter, 14, { duration: 1.2 });
+    }
+  }, [centerTrigger, defaultCenter, map]);
+
+  return null;
+}
+
 export default function IncidentsMap({ 
   reports = [], 
   categories = [],
@@ -67,14 +91,16 @@ export default function IncidentsMap({
   statusFilter,
   setStatusFilter
 }) {
-  const [mapStyle, setMapStyle] = useState('dark'); // 'dark' | 'streets'
+  const [mapStyle, setMapStyle] = useState('dark'); // 'dark' | 'streets' | 'osm'
+  const [centerTrigger, setCenterTrigger] = useState(0);
 
-  // Centro de mapa calculado a partir de los reportes (o centro histórico por defecto)
-  const defaultCenter = [19.432608, -99.133209];
+  // Coordenadas de Morelia, Michoacán (Centro Histórico / Catedral de Morelia)
+  const moreliaCenter = [19.7024, -101.1923];
 
   const tileUrls = {
     dark: 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',
-    streets: 'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png'
+    streets: 'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png',
+    osm: 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png'
   };
 
   const getCategory = (catId) => categories.find(c => c.id === catId) || { color: '#3b82f6', name: 'General', slug: 'general' };
@@ -98,25 +124,27 @@ export default function IncidentsMap({
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'space-between',
-        pointerEvents: 'none'
+        pointerEvents: 'none',
+        flexWrap: 'wrap',
+        gap: '10px'
       }}>
         {/* Status Filter Badges */}
         <div style={{
           display: 'flex',
           gap: '8px',
-          background: 'rgba(15, 23, 42, 0.85)',
+          background: 'rgba(15, 23, 42, 0.88)',
           backdropFilter: 'blur(12px)',
           padding: '6px 12px',
           borderRadius: 'var(--radius-full)',
           border: '1px solid var(--border-subtle)',
           pointerEvents: 'auto',
-          boxShadow: '0 8px 20px rgba(0,0,0,0.4)'
+          boxShadow: '0 8px 20px rgba(0,0,0,0.5)'
         }}>
           {[
             { id: 'all', label: 'Todos' },
             { id: 'pending', label: 'Pendientes' },
             { id: 'assigned', label: 'Asignados' },
-            { id: 'in_progress', label: 'En Reparación' },
+            { id: 'in_progress', label: 'En Obra' },
             { id: 'resolved', label: 'Resueltos' }
           ].map((st) => (
             <button
@@ -139,25 +167,52 @@ export default function IncidentsMap({
           ))}
         </div>
 
-        {/* Map View Toggle (Dark vs Voyager) */}
+        {/* Controls: Recentering & Map View Toggle */}
         <div style={{
           display: 'flex',
-          gap: '6px',
-          background: 'rgba(15, 23, 42, 0.85)',
-          backdropFilter: 'blur(12px)',
-          padding: '4px',
-          borderRadius: 'var(--radius-sm)',
-          border: '1px solid var(--border-subtle)',
+          gap: '8px',
           pointerEvents: 'auto'
         }}>
+          {/* Centrar en Morelia */}
           <button
-            onClick={() => setMapStyle(mapStyle === 'dark' ? 'streets' : 'dark')}
+            onClick={() => setCenterTrigger(prev => prev + 1)}
             className="btn btn-secondary btn-sm"
-            style={{ fontSize: '0.75rem', padding: '4px 8px' }}
+            style={{
+              background: 'rgba(15, 23, 42, 0.88)',
+              backdropFilter: 'blur(12px)',
+              fontSize: '0.75rem',
+              padding: '6px 12px',
+              border: '1px solid var(--border-subtle)',
+              boxShadow: '0 8px 20px rgba(0,0,0,0.4)',
+              color: '#38bdf8'
+            }}
+            title="Centrar mapa en la Catedral de Morelia"
           >
-            <Layers size={14} />
-            <span>{mapStyle === 'dark' ? 'Modo Oscuro' : 'Modo Calles'}</span>
+            <Navigation size={14} />
+            <span>Centrar en Morelia</span>
           </button>
+
+          {/* Toggle Map Style */}
+          <div style={{
+            display: 'flex',
+            background: 'rgba(15, 23, 42, 0.88)',
+            backdropFilter: 'blur(12px)',
+            padding: '3px',
+            borderRadius: 'var(--radius-sm)',
+            border: '1px solid var(--border-subtle)',
+            boxShadow: '0 8px 20px rgba(0,0,0,0.4)'
+          }}>
+            <button
+              onClick={() => setMapStyle(mapStyle === 'dark' ? 'streets' : mapStyle === 'streets' ? 'osm' : 'dark')}
+              className="btn btn-secondary btn-sm"
+              style={{ fontSize: '0.75rem', padding: '4px 10px', border: 'none' }}
+            >
+              <Layers size={14} />
+              <span>
+                {mapStyle === 'dark' ? 'Modo Oscuro' : mapStyle === 'streets' ? 'Modo Calles' : 'OpenStreetMap'}
+              </span>
+            </button>
+          </div>
         </div>
       </div>
 
@@ -169,14 +224,18 @@ export default function IncidentsMap({
         zIndex: 1000,
         background: 'rgba(15, 23, 42, 0.88)',
         backdropFilter: 'blur(12px)',
-        padding: '10px 14px',
+        padding: '12px 16px',
         borderRadius: '12px',
         border: '1px solid var(--border-subtle)',
         fontSize: '0.74rem',
-        boxShadow: '0 8px 24px rgba(0,0,0,0.5)'
+        boxShadow: '0 8px 24px rgba(0,0,0,0.5)',
+        maxWidth: '260px'
       }}>
-        <div style={{ fontWeight: 700, color: '#f1f5f9', marginBottom: '8px' }}>
-          Simbología de Infraestructura
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
+          <div style={{ fontWeight: 700, color: '#f1f5f9' }}>
+            Mapa de Morelia, Mich.
+          </div>
+          <span style={{ fontSize: '0.68rem', color: '#38bdf8', fontWeight: 600 }}>C4 Municipal</span>
         </div>
         <div style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
           {categories.map((c) => (
@@ -199,20 +258,23 @@ export default function IncidentsMap({
               backgroundColor: '#ef4444',
               boxShadow: '0 0 8px #ef4444'
             }} />
-            <span style={{ color: '#f87171', fontWeight: 600 }}>Alerta Crítica / Alta Urgencia</span>
+            <span style={{ color: '#f87171', fontWeight: 600 }}>Alerta Crítica / Emergencia</span>
           </div>
         </div>
       </div>
 
       {/* Actual Leaflet Map */}
       <MapContainer
-        center={defaultCenter}
-        zoom={14}
+        center={moreliaCenter}
+        zoom={13}
         style={{ width: '100%', height: '100%', background: '#0a0e17' }}
         zoomControl={false}
       >
+        <ZoomControl position="bottomright" />
+        <MapController centerTrigger={centerTrigger} defaultCenter={moreliaCenter} />
+
         <TileLayer
-          attribution='&copy; <a href="https://carto.com/">CARTO</a>'
+          attribution='&copy; <a href="https://carto.com/">CARTO</a> &copy; <a href="https://openstreetmap.org">OSM</a>'
           url={tileUrls[mapStyle]}
         />
 

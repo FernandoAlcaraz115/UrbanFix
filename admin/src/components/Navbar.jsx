@@ -71,11 +71,11 @@ export default function Navbar({
               fontWeight: 700,
               textTransform: 'uppercase'
             }}>
-              Panel Municipal
+              Morelia, Mich.
             </span>
           </div>
           <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
-            Supervisión y Despacho de Infraestructura Urbana
+            H. Ayuntamiento de Morelia — Centro de Despacho C4
           </p>
         </div>
       </div>
@@ -134,7 +134,7 @@ export default function Navbar({
           fontSize: '0.78rem'
         }}>
           <span className="pulse-dot"></span>
-          <span style={{ color: '#34d399', fontWeight: 600 }}>En Vivo (C5)</span>
+          <span style={{ color: '#34d399', fontWeight: 600 }}>En Vivo (C4 Morelia)</span>
           {isMockMode && (
             <span style={{ 
               fontSize: '0.7rem', 
@@ -204,8 +204,8 @@ export default function Navbar({
             SP
           </div>
           <div>
-            <div style={{ fontSize: '0.82rem', fontWeight: 600 }}>Supervisión C5</div>
-            <div style={{ fontSize: '0.7rem', color: 'var(--text-dim)' }}>Centro de Despacho</div>
+            <div style={{ fontSize: '0.82rem', fontWeight: 600 }}>Supervisión C4</div>
+            <div style={{ fontSize: '0.7rem', color: 'var(--text-dim)' }}>Morelia, Mich.</div>
           </div>
         </div>
       </div>
