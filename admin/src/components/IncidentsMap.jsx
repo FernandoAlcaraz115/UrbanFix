@@ -11,7 +11,9 @@ import {
   Layers,
   Wrench,
   Navigation,
-  ExternalLink
+  ExternalLink,
+  Satellite,
+  Compass
 } from 'lucide-react';
 
 // Generar DivIcon personalizado con colores y badges según categoría y severidad
@@ -91,17 +93,12 @@ export default function IncidentsMap({
   statusFilter,
   setStatusFilter
 }) {
-  const [mapStyle, setMapStyle] = useState('dark'); // 'dark' | 'streets' | 'osm'
+  // 'dark' (Esri Dark Canvas), 'streets' (OpenStreetMap), 'satellite' (Esri Satellite)
+  const [mapStyle, setMapStyle] = useState('dark');
   const [centerTrigger, setCenterTrigger] = useState(0);
 
   // Coordenadas de Morelia, Michoacán (Centro Histórico / Catedral de Morelia)
   const moreliaCenter = [19.7024, -101.1923];
-
-  const tileUrls = {
-    dark: 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',
-    streets: 'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png',
-    osm: 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png'
-  };
 
   const getCategory = (catId) => categories.find(c => c.id === catId) || { color: '#3b82f6', name: 'General', slug: 'general' };
 
@@ -132,7 +129,7 @@ export default function IncidentsMap({
         <div style={{
           display: 'flex',
           gap: '8px',
-          background: 'rgba(15, 23, 42, 0.88)',
+          background: 'rgba(15, 23, 42, 0.90)',
           backdropFilter: 'blur(12px)',
           padding: '6px 12px',
           borderRadius: 'var(--radius-full)',
@@ -178,7 +175,7 @@ export default function IncidentsMap({
             onClick={() => setCenterTrigger(prev => prev + 1)}
             className="btn btn-secondary btn-sm"
             style={{
-              background: 'rgba(15, 23, 42, 0.88)',
+              background: 'rgba(15, 23, 42, 0.90)',
               backdropFilter: 'blur(12px)',
               fontSize: '0.75rem',
               padding: '6px 12px',
@@ -192,10 +189,11 @@ export default function IncidentsMap({
             <span>Centrar en Morelia</span>
           </button>
 
-          {/* Toggle Map Style */}
+          {/* Selector de Capas */}
           <div style={{
             display: 'flex',
-            background: 'rgba(15, 23, 42, 0.88)',
+            gap: '4px',
+            background: 'rgba(15, 23, 42, 0.90)',
             backdropFilter: 'blur(12px)',
             padding: '3px',
             borderRadius: 'var(--radius-sm)',
@@ -203,14 +201,63 @@ export default function IncidentsMap({
             boxShadow: '0 8px 20px rgba(0,0,0,0.4)'
           }}>
             <button
-              onClick={() => setMapStyle(mapStyle === 'dark' ? 'streets' : mapStyle === 'streets' ? 'osm' : 'dark')}
-              className="btn btn-secondary btn-sm"
-              style={{ fontSize: '0.75rem', padding: '4px 10px', border: 'none' }}
+              onClick={() => setMapStyle('dark')}
+              style={{
+                background: mapStyle === 'dark' ? 'var(--primary)' : 'transparent',
+                color: mapStyle === 'dark' ? '#ffffff' : 'var(--text-muted)',
+                border: 'none',
+                borderRadius: '6px',
+                padding: '4px 8px',
+                fontSize: '0.73rem',
+                fontWeight: mapStyle === 'dark' ? 700 : 500,
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '4px'
+              }}
             >
-              <Layers size={14} />
-              <span>
-                {mapStyle === 'dark' ? 'Modo Oscuro' : mapStyle === 'streets' ? 'Modo Calles' : 'OpenStreetMap'}
-              </span>
+              <Layers size={13} />
+              <span>Oscuro</span>
+            </button>
+
+            <button
+              onClick={() => setMapStyle('streets')}
+              style={{
+                background: mapStyle === 'streets' ? 'var(--primary)' : 'transparent',
+                color: mapStyle === 'streets' ? '#ffffff' : 'var(--text-muted)',
+                border: 'none',
+                borderRadius: '6px',
+                padding: '4px 8px',
+                fontSize: '0.73rem',
+                fontWeight: mapStyle === 'streets' ? 700 : 500,
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '4px'
+              }}
+            >
+              <Compass size={13} />
+              <span>Calles</span>
+            </button>
+
+            <button
+              onClick={() => setMapStyle('satellite')}
+              style={{
+                background: mapStyle === 'satellite' ? 'var(--primary)' : 'transparent',
+                color: mapStyle === 'satellite' ? '#ffffff' : 'var(--text-muted)',
+                border: 'none',
+                borderRadius: '6px',
+                padding: '4px 8px',
+                fontSize: '0.73rem',
+                fontWeight: mapStyle === 'satellite' ? 700 : 500,
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '4px'
+              }}
+            >
+              <Satellite size={13} />
+              <span>Satélite</span>
             </button>
           </div>
         </div>
@@ -222,7 +269,7 @@ export default function IncidentsMap({
         bottom: '16px',
         left: '16px',
         zIndex: 1000,
-        background: 'rgba(15, 23, 42, 0.88)',
+        background: 'rgba(15, 23, 42, 0.90)',
         backdropFilter: 'blur(12px)',
         padding: '12px 16px',
         borderRadius: '12px',
@@ -267,16 +314,57 @@ export default function IncidentsMap({
       <MapContainer
         center={moreliaCenter}
         zoom={13}
+        maxZoom={18}
+        minZoom={10}
         style={{ width: '100%', height: '100%', background: '#0a0e17' }}
         zoomControl={false}
       >
         <ZoomControl position="bottomright" />
         <MapController centerTrigger={centerTrigger} defaultCenter={moreliaCenter} />
 
-        <TileLayer
-          attribution='&copy; <a href="https://carto.com/">CARTO</a> &copy; <a href="https://openstreetmap.org">OSM</a>'
-          url={tileUrls[mapStyle]}
-        />
+        {/* 1. MODO OSCURO (Esri World Dark Gray Canvas: 100% Gratuito y sin API Key) */}
+        {mapStyle === 'dark' && (
+          <>
+            <TileLayer
+              key="esri-dark-base"
+              attribution='&copy; <a href="https://www.esri.com/">Esri</a>'
+              url="https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}"
+              maxZoom={16}
+            />
+            <TileLayer
+              key="esri-dark-ref"
+              url="https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Reference/MapServer/tile/{z}/{y}/{x}"
+              maxZoom={16}
+            />
+          </>
+        )}
+
+        {/* 2. MODO CALLES (OpenStreetMap: 100% Gratuito, detalle calle por calle de Morelia) */}
+        {mapStyle === 'streets' && (
+          <TileLayer
+            key="osm-streets"
+            attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+            maxZoom={19}
+          />
+        )}
+
+        {/* 3. MODO SATÉLITE HD (Esri World Imagery + Capa de Calles) */}
+        {mapStyle === 'satellite' && (
+          <>
+            <TileLayer
+              key="esri-satellite"
+              attribution='&copy; <a href="https://www.esri.com/">Esri</a>, Maxar'
+              url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
+              maxZoom={18}
+            />
+            <TileLayer
+              key="esri-sat-labels"
+              url="https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}"
+              maxZoom={18}
+            />
+          </>
+        )}
 
         {reports.map((report) => {
           const category = getCategory(report.categoryId);
