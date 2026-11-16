@@ -1,0 +1,10 @@
+{
+  "name": "urbanfix-server",
+  "version": "1.0.0",
+  "description": "UrbanFix Live Sync Server — Morelia, Michoacán",
+  "type": "module",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js"
+  }
+}

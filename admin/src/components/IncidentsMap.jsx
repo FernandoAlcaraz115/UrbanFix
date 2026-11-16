@@ -64,7 +64,7 @@ function createCustomPin(categoryColor, isCritical, categorySlug) {
 }
 
 // Controlador interno de Leaflet para garantizar renderizado de tiles y recentrado
-function MapController({ centerTrigger, defaultCenter }) {
+function MapController({ centerTrigger, defaultCenter, focusedIncident }) {
   const map = useMap();
 
   useEffect(() => {
@@ -76,6 +76,12 @@ function MapController({ centerTrigger, defaultCenter }) {
       clearTimeout(t2);
     };
   }, [map]);
+
+  useEffect(() => {
+    if (focusedIncident && focusedIncident.latitude && focusedIncident.longitude) {
+      map.flyTo([focusedIncident.latitude, focusedIncident.longitude], 16, { duration: 1.4 });
+    }
+  }, [focusedIncident, map]);
 
   useEffect(() => {
     if (centerTrigger > 0) {
@@ -91,7 +97,8 @@ export default function IncidentsMap({
   categories = [],
   onSelectIncident,
   statusFilter,
-  setStatusFilter
+  setStatusFilter,
+  focusedIncident
 }) {
   // 'dark' (Esri Dark Canvas), 'streets' (OpenStreetMap), 'satellite' (Esri Satellite)
   const [mapStyle, setMapStyle] = useState('dark');
@@ -320,7 +327,7 @@ export default function IncidentsMap({
         zoomControl={false}
       >
         <ZoomControl position="bottomright" />
-        <MapController centerTrigger={centerTrigger} defaultCenter={moreliaCenter} />
+        <MapController centerTrigger={centerTrigger} defaultCenter={moreliaCenter} focusedIncident={focusedIncident} />
 
         {/* 1. MODO OSCURO (Esri World Dark Gray Canvas: 100% Gratuito y sin API Key) */}
         {mapStyle === 'dark' && (

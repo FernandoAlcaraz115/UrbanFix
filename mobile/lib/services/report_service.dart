@@ -2,13 +2,17 @@ import 'package:flutter/foundation.dart';
 import '../models/report_model.dart';
 import '../models/category_model.dart';
 import 'duplicate_detector_service.dart';
+import 'api_service.dart';
 
 class ReportService extends ChangeNotifier {
   static final ReportService _instance = ReportService._internal();
   factory ReportService() => _instance;
 
+  final ApiService _apiService = ApiService();
+
   ReportService._internal() {
     _loadInitialData();
+    _syncWithServer();
   }
 
   final List<ReportModel> _reports = [];
@@ -19,6 +23,15 @@ class ReportService extends ChangeNotifier {
 
   int get totalResolved => _reports.where((r) => r.status == 'resolved').length;
   int get totalActive => _reports.where((r) => r.status != 'resolved').length;
+
+  Future<void> _syncWithServer() async {
+    final liveReports = await _apiService.getReports();
+    if (liveReports != null && liveReports.isNotEmpty) {
+      _reports.clear();
+      _reports.addAll(liveReports);
+      notifyListeners();
+    }
+  }
 
   void _loadInitialData() {
     _reports.addAll([
@@ -134,10 +147,21 @@ class ReportService extends ChangeNotifier {
     );
   }
 
-  /// Registra un nuevo reporte
+  /// Registra un nuevo reporte y lo sincroniza en tiempo real con el C4 Morelia
   void addReport(ReportModel report) {
     _reports.insert(0, report);
     notifyListeners();
+
+    // Sincronizar asíncronamente con el servidor en tiempo real
+    _apiService.createReport(report).then((createdReport) {
+      if (createdReport != null) {
+        final idx = _reports.indexWhere((r) => r.id == report.id);
+        if (idx != -1) {
+          _reports[idx] = createdReport;
+          notifyListeners();
+        }
+      }
+    });
   }
 
   /// Suma apoyo (+1 voto ciudadano) a un reporte existente para aumentar su prioridad
@@ -153,6 +177,9 @@ class ReportService extends ChangeNotifier {
         ),
       );
       notifyListeners();
+
+      // Sincronizar en el servidor
+      _apiService.upvoteReport(reportId);
     }
   }
 

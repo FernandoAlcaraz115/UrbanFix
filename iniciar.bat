@@ -1,9 +1,7 @@
 @echo off
 setlocal enabledelayedexpansion
-title UrbanFix - Panel Administrativo Morelia
+title UrbanFix - Centro de Despacho C4 Morelia
 color 0B
-
-cd /d "%~dp0admin"
 
 cls
 echo ============================================================
@@ -11,32 +9,37 @@ echo   URBANFIX - SISTEMA DE REPORTE CIUDADANO INTELIGENTE
 echo        H. Ayuntamiento de Morelia, Michoacan
 echo ============================================================
 echo.
-echo [*] Directorio: %~dp0admin
-echo [*] Cobertura: Morelia, Michoacan
-echo [*] Sistema: Panel de Control Municipal y Despacho C4
+echo [*] Cobertura: Morelia, Michoacan (Centro, Camelinas, La Huerta)
+echo [*] Arquitectura: Panel Web Admin (React) + Servidor en Vivo + App Movil (Flutter)
 echo.
 
 where node >nul 2>nul
 if %errorlevel% neq 0 goto no_node
 
-if not exist "node_modules\" goto do_install
-goto run_app
+:: 1. Iniciar Servidor en Vivo de UrbanFix (Puerto 3001)
+echo [*] Iniciando Servidor en Vivo C4 Morelia (Puerto 3001)...
+start "UrbanFix Live Server (C4 Morelia)" cmd.exe /c "title UrbanFix Live Server && cd /d "%~dp0server" && node index.js"
 
-:do_install
-echo [!] Instalando dependencias necesarias con npm...
+:: 2. Verificar dependencias de Admin
+cd /d "%~dp0admin"
+if not exist "node_modules\" (
+    echo [!] Instalando dependencias de Admin...
+    call npm.cmd install
+    if %errorlevel% neq 0 goto install_failed
+)
+
+:: 3. Iniciar Panel Web Admin (Vite)
 echo.
-call npm.cmd install
-if %errorlevel% neq 0 goto install_failed
+echo ------------------------------------------------------------
+echo  Servidor en Vivo activo en: http://localhost:3001
+echo  Iniciando Panel Web en:     http://localhost:5173
 echo.
-echo [OK] Dependencias instaladas correctamente.
+echo  Para ejecutar la App Movil en otra terminal:
+echo    cd mobile
+echo    flutter run -d chrome
+echo ------------------------------------------------------------
 echo.
 
-:run_app
-echo ------------------------------------------------------------
-echo  Iniciando servidor local y abriendo tu navegador...
-echo  Presiona Ctrl + C en esta ventana para detener el servidor.
-echo ------------------------------------------------------------
-echo.
 call npm.cmd run dev -- --open
 if %errorlevel% neq 0 goto run_failed
 goto end
@@ -44,7 +47,6 @@ goto end
 :no_node
 echo.
 echo [ERROR] Node.js no esta instalado o no se encuentra en el PATH.
-echo Por favor instala Node.js desde https://nodejs.org/ para continuar.
 echo.
 pause
 exit /b 1

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Navbar from './components/Navbar';
 import Sidebar from './components/Sidebar';
 import StatsCards from './components/StatsCards';
@@ -8,8 +8,10 @@ import IncidentsTable from './components/IncidentsTable';
 import CrewsView from './components/CrewsView';
 import AnalyticsView from './components/AnalyticsView';
 import IncidentDetailModal from './components/IncidentDetailModal';
+import LiveToast from './components/LiveToast';
 import { INITIAL_CATEGORIES, INITIAL_CREWS, INITIAL_REPORTS } from './data/mockData';
 import { isSupabaseConfigured } from './services/supabaseClient';
+import { fetchLiveReports, subscribeToLiveEvents, updateReportOnServer, playChime } from './services/liveService';
 
 export default function App() {
   const [reports, setReports] = useState(INITIAL_REPORTS);
@@ -22,17 +24,51 @@ export default function App() {
   const [statusFilter, setStatusFilter] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
 
-  // Selected report for inspection modal
+  // Selected report for inspection modal & map focus
   const [selectedIncident, setSelectedIncident] = useState(null);
+  const [focusedIncident, setFocusedIncident] = useState(null);
+  const [liveToast, setLiveToast] = useState(null);
+
+  // Sincronización en vivo con el Servidor C4 Morelia
+  useEffect(() => {
+    // 1. Cargar datos iniciales desde el servidor
+    fetchLiveReports().then(data => {
+      if (Array.isArray(data) && data.length > 0) {
+        setReports(data);
+      }
+    });
+
+    // 2. Escuchar stream de eventos SSE en tiempo real
+    const unsubscribe = subscribeToLiveEvents((event) => {
+      if (event.type === 'REPORT_CREATED') {
+        const newRep = event.data;
+        setReports(prev => {
+          if (prev.some(r => r.id === newRep.id || r.ticketNumber === newRep.ticketNumber)) return prev;
+          return [newRep, ...prev];
+        });
+        playChime();
+        setLiveToast({ report: newRep });
+      } else if (event.type === 'REPORT_UPVOTED') {
+        const updated = event.data;
+        setReports(prev => prev.map(r => (r.id === updated.id ? { ...r, upvotesCount: updated.upvotesCount } : r)));
+      } else if (event.type === 'REPORT_STATUS_CHANGED') {
+        const updated = event.data;
+        setReports(prev => prev.map(r => (r.id === updated.id ? { ...r, status: updated.status, assignedCrewId: updated.assignedCrewId } : r)));
+      }
+    });
+
+    return () => unsubscribe();
+  }, []);
 
   // Handle report status change
   const handleStatusChange = (reportId, newStatus) => {
+    updateReportOnServer(reportId, { status: newStatus });
     setReports(prev => prev.map(rep => {
       if (rep.id === reportId) {
         const historyEntry = {
           status: newStatus,
           date: new Date().toISOString(),
-          note: `Estado actualizado a ${newStatus} por Supervisor C5`
+          note: `Estado actualizado a ${newStatus} por Supervisor C4 Morelia`
         };
         const updated = {
           ...rep,
@@ -58,6 +94,7 @@ export default function App() {
 
   // Handle crew assignment
   const handleAssignCrew = (reportId, crewId) => {
+    updateReportOnServer(reportId, { assignedCrewId: crewId });
     setReports(prev => prev.map(rep => {
       if (rep.id === reportId) {
         const newStatus = (rep.status === 'pending' || rep.status === 'in_review') ? 'assigned' : rep.status;
@@ -141,6 +178,7 @@ export default function App() {
               onSelectIncident={(incident) => setSelectedIncident(incident)}
               statusFilter={statusFilter}
               setStatusFilter={setStatusFilter}
+              focusedIncident={focusedIncident}
             />
           )}
 
@@ -191,6 +229,17 @@ export default function App() {
           onAssignCrew={handleAssignCrew}
         />
       )}
+
+      {/* Real-time incoming report toast */}
+      <LiveToast
+        toast={liveToast}
+        onDismiss={() => setLiveToast(null)}
+        onViewReport={(rep) => {
+          setCurrentTab('map');
+          setFocusedIncident(rep);
+          setSelectedIncident(rep);
+        }}
+      />
     </div>
   );
 }
