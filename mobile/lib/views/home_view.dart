@@ -79,7 +79,7 @@ class _HomeViewState extends State<HomeView> {
           children: [
             // Header Municipal
             Row(
-              mainAxisAlignment: MainAxisAlignment.between,
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Row(
                   children: [
@@ -326,7 +326,7 @@ class _HomeViewState extends State<HomeView> {
 
             // Actividad Reciente en Morelia
             Row(
-              mainAxisAlignment: MainAxisAlignment.between,
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 const Text(
                   'REPORTES RECIENTES EN MORELIA',
@@ -350,7 +350,7 @@ class _HomeViewState extends State<HomeView> {
 
             ListView.separated(
               shrinkWrap: true,
-              physics: const NeverScrollableScrollExceptionScrollPhysics(),
+              physics: const NeverScrollableScrollPhysics(),
               itemCount: recentReports.length,
               separatorBuilder: (_, __) => const SizedBox(height: 10.0),
               itemBuilder: (context, index) {
@@ -390,7 +390,7 @@ class _HomeViewState extends State<HomeView> {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Row(
-                                mainAxisAlignment: MainAxisAlignment.between,
+                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                 children: [
                                   Text(
                                     category.name.split('/')[0].trim(),

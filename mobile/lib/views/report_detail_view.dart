@@ -59,7 +59,6 @@ class ReportDetailView extends StatelessWidget {
                     color: category.color,
                     fontSize: 12.0,
                     fontWeight: FontWeight.w700,
-                    textTransform: TextTransform.none,
                   ),
                 ),
               ],
