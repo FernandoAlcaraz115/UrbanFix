@@ -58,9 +58,14 @@ UrbanFix/
 │   ├── index.html
 │   ├── package.json
 │   └── vite.config.js
+├── mobile/                    # App Móvil Ciudadana en Flutter (Dart)
+│   ├── android/               # Manifiesto y permisos nativos (GPS + Cámara)
+│   ├── lib/                   # Vistas (Home, Captura, Mis Reportes), Modelos y Servicios
+│   ├── pubspec.yaml           # Dependencias y assets
+│   └── README.md
 ├── supabase/                  # Base de Datos y Lógica Geoespacial
 │   ├── schema.sql             # Esquema DDL con extensiones PostGIS e índices GiST
-│   └── seed.sql               # Datos iniciales (categorías, cuadrillas, reportes reales)
+│   └── seed.sql               # Datos iniciales (categorías, cuadrillas, reportes de Morelia)
 └── docs/                      # Diagramas, requerimientos y especificaciones
 ```
 
@@ -111,8 +116,8 @@ Por defecto, la aplicación incluye un adaptador de datos simulados reactivo par
 
 - [x] **Entregable 1:** Panel Web Administrativo Municipal (React + Vite + Leaflet)
 - [x] **Entregable 1:** Esquema SQL con soporte PostGIS y función RPC de duplicados
-- [ ] **Entregable 2:** App Móvil Ciudadana en Flutter (Cámara, GPS y seguimiento de tickets)
-- [ ] **Entregable 3:** App Móvil modo Técnico (Evidencia de reparación con foto Antes/Después)
+- [x] **Entregable 2:** App Móvil Ciudadana en Flutter (Cámara, GPS en Morelia, detector inteligente de duplicados <35m y seguimiento)
+- [ ] **Entregable 3:** Sincronización en vivo Cloud con Supabase Realtime (WebSockets) y modo cuadrilla de campo
 
 ---
 
